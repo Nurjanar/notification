@@ -13,6 +13,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.MessageData
 
 class FCMService : FirebaseMessagingService() {
     private val content = "content"
@@ -35,28 +36,31 @@ class FCMService : FirebaseMessagingService() {
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onMessageReceived(message: RemoteMessage) {
-        val recipientId = message.data["recipientId"]?.toLongOrNull()
-        val appAuth = AppAuth.getInstance()
-        val currentUserId = appAuth.authStateFlow.value.id
+        val contentJson = message.data["content"]
+        if (contentJson != null) {
+            val messageData = gson.fromJson(contentJson, MessageData::class.java)
+            val recipientId = messageData.recipientId
+            val appAuth = AppAuth.getInstance()
+            val currentUserId = appAuth.authStateFlow.value.id
 
-        when {
-            recipientId == currentUserId -> {
-                showNotification(message.data["content"])
-            }
+            when {
+                recipientId == currentUserId -> {
+                    showNotification(messageData.content)
+                }
 
-            recipientId == 0L -> {
-                appAuth.sendPushToken()
-            }
+                recipientId == 0L -> {
+                    appAuth.sendPushToken()
+                }
 
-            recipientId != null && recipientId != currentUserId -> {
-                appAuth.sendPushToken()
-            }
+                recipientId != null && recipientId != currentUserId -> {
+                    appAuth.sendPushToken()
+                }
 
-            recipientId == null -> {
-                showNotification(message.data["content"])
+                recipientId == null -> {
+                    showNotification(messageData.content)
+                }
             }
         }
-        println(message.data["content"])
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
