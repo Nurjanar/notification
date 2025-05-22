@@ -122,7 +122,6 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                     R.id.signup -> {
                         // TODO: just hardcode it, implementation must be in homework
                         appAuth.setAuth(5, "x-token")
-                        model.refreshPosts()
                         true
                     }
 
