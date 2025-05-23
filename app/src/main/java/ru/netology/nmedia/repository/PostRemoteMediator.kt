@@ -12,14 +12,16 @@ import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.error.ApiError
+import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
-class PostRemoteMediator(
+class PostRemoteMediator @Inject constructor(
     private val service: ApiService,
-    private val postDao: PostDao,
-    private val db: AppDb,
-    private val postRemoteKeyDao: PostRemoteKeyDao
+    private val postDao: PostDao
 ) : RemoteMediator<Int, PostEntity>() {
+    lateinit var db: AppDb
+    private lateinit var postRemoteKeyDao: PostRemoteKeyDao
+
     @ExperimentalPagingApi
     override suspend fun load(
         loadType: LoadType,
