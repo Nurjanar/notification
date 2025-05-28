@@ -18,10 +18,12 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.viewmodel.AuthViewModel
+import ru.netology.nmedia.viewmodel.PostViewModel
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -41,6 +43,10 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
 
     private val viewModel: AuthViewModel by viewModels()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val model: PostViewModel by viewModels()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -109,6 +115,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                     R.id.signin -> {
                         // TODO: just hardcode it, implementation must be in homework
                         appAuth.setAuth(5, "x-token")
+                        model.refreshPosts()
                         true
                     }
 
@@ -121,6 +128,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                     R.id.signout -> {
                         // TODO: just hardcode it, implementation must be in homework
                         appAuth.removeAuth()
+                        model.refreshPosts()
                         true
                     }
 
