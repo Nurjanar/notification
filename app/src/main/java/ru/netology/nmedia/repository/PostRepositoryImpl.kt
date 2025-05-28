@@ -11,6 +11,8 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dao.PostRemoteKeyDao
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.MediaUpload
@@ -23,19 +25,31 @@ import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    db: AppDb,
+    postRemoteKeyDao: PostRemoteKeyDao
 ) : PostRepository {
     @OptIn(ExperimentalPagingApi::class)
     override val data: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(pageSize = 10),
-        remoteMediator = PostRemoteMediator(apiService, postDao),
-        pagingSourceFactory = postDao::pagingSource,
-    ).flow.map { pagingData ->
-        pagingData.map(PostEntity::toDto)
-    }
+        config = PagingConfig(pageSize = 10, enablePlaceholders = false),
+        pagingSourceFactory = { postDao.pagingSource() },
+        remoteMediator = PostRemoteMediator(
+            service = apiService,
+            postDao = postDao,
+            db = db,
+            postRemoteKeyDao = postRemoteKeyDao
+        )
+    ).flow
+        .map {
+            it.map {
+                it.toDto()
+            }
+        }
 //    override suspend fun getAll() {
 //        try {
 //            val response = apiService.getAll()
